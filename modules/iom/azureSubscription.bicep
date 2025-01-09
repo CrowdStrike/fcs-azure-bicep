@@ -103,9 +103,6 @@ module azureAccount 'azureAccount.bicep' = {
     azureAccountType: azureAccountType
     targetScope: targetScope
   }
-  dependsOn: [
-    azureAppRegistration
-  ]
 }
 
 /* Update Application Registration with Falcon provided certificate */
@@ -115,9 +112,6 @@ module azureAppRegistrationUpdate 'azureAppRegistration.bicep' = if (!useExistin
     publicCertificate: azureAccount.outputs.azurePublicCertificate
     grantAdminConsent: grantAppRegistrationAdminConsent
   }
-  dependsOn: [
-    azureAccount
-  ]
 }
 
 /* Assign required permissions on Azure Subscription */
