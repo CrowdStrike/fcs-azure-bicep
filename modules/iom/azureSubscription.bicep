@@ -31,6 +31,9 @@ param falconClientId string
 @secure()
 param falconClientSecret string
 
+@description('Subscription Id of the default Azure Subscription.')
+param defaultSubscriptionId string = subscription().id
+
 @description('Falcon cloud region.')
 @allowed([
   'US-1'
@@ -118,12 +121,27 @@ module azureAppRegistrationUpdate 'azureAppRegistration.bicep' = if (!useExistin
   ]
 }
 
+/* Define required permissions at Azure Subscription scope */
+module azureSubscriptionExistingRoleDefinition 'azureSubscriptionExistingRoleDefinition.bicep' = if (assignAzureSubscriptionPermissions && (subscription().subscriptionId != defaultSubscriptionId)) {
+  name: '${deploymentNamePrefix}-azureSubscriptionExistingRoleDefinition-${deploymentNameSuffix}'
+  scope: subscription(defaultSubscriptionId)
+  params: {
+    subscriptionId: subscription().id
+  }
+}
+
+/* Define required permissions at Azure Subscription scope */
+module azureSubscriptionRoleDefinition 'azureSubscriptionRoleDefinition.bicep' = if (assignAzureSubscriptionPermissions && (subscription().subscriptionId == defaultSubscriptionId)) {
+  name: '${deploymentNamePrefix}-azureSubscriptionRoleDefinition-${deploymentNameSuffix}'
+}
+
 /* Assign required permissions on Azure Subscription */
 module azureSubscriptionRoleAssignment 'azureSubscriptionRoleAssignment.bicep' = if (assignAzureSubscriptionPermissions) {
   name: '${deploymentNamePrefix}-azureSubscriptionRoleAssignment-${deploymentNameSuffix}'
   params: {
     azurePrincipalType: azurePrincipalType
     azurePrincipalId: useExistingAppRegistration ? azurePrincipalId : azureAppRegistration.outputs.servicePrincipalId
+    customRoleDefinitionId: subscription().subscriptionId == defaultSubscriptionId ? azureSubscriptionRoleDefinition.outputs.customRoleDefinitionId : azureSubscriptionExistingRoleDefinition.outputs.customRoleDefinitionId
   }
 }
 

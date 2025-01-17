@@ -12,15 +12,7 @@ param azurePrincipalId string
 @description('Type of the Principal. Defaults to ServicePrincipal.')
 param azurePrincipalType string = 'ServicePrincipal'
 
-param customRole object = {
-  roleName: 'cs-website-reader'
-  roleDescription: 'CrowdStrike custom role to allow read access to App Service and Function.'
-  roleActions: [
-    'Microsoft.Web/sites/Read'
-    'Microsoft.Web/sites/config/Read'
-    'Microsoft.Web/sites/config/list/Action'
-  ]
-}
+param customRoleDefinitionId string
 
 var roleDefinitionIds = [
   'acdd72a7-3385-48ef-bd42-f606fba81ae7' // Reader
@@ -28,22 +20,6 @@ var roleDefinitionIds = [
   '21090545-7ca7-4776-b22c-e363652d74d2' // Key Vault Reader
   '7f6c6a51-bcf8-42ba-9220-52d62157d7db' // Azure Kubernetes Service RBAC Reader
 ]
-
-resource customRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
-  name: guid(customRole.roleName, subscription().id)
-  properties: {
-    assignableScopes: [subscription().id]
-    description: customRole.roleDescription
-    permissions: [
-      {
-        actions: customRole.roleActions
-        notActions: []
-      }
-    ]
-    roleName: customRole.roleName
-    type: 'CustomRole'
-  }
-}
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   for roleDefinitionId in roleDefinitionIds: {
@@ -59,11 +35,11 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
 resource customRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(
     azurePrincipalId,
-    customRoleDefinition.id,
+    customRoleDefinitionId,
     subscription().id
   )
   properties: {
-    roleDefinitionId: customRoleDefinition.id
+    roleDefinitionId: customRoleDefinitionId
     principalId: azurePrincipalId
     principalType: azurePrincipalType
   }

@@ -106,6 +106,7 @@ module iomAzureSubscription 'modules/iom/azureSubscription.bicep' = if (deployIO
     falconClientId: falconClientId
     falconClientSecret: falconClientSecret
     falconCloudRegion: falconCloudRegion
+    defaultSubscriptionId: defaultSubscriptionId
     useExistingAppRegistration: useExistingAppRegistration
     grantAppRegistrationAdminConsent: grantAppRegistrationAdminConsent
     azureClientId: useExistingAppRegistration ? '' : azureClientId
